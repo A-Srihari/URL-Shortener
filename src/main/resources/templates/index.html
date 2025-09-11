@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Short URL</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Hero Section -->
+    <div class="jumbotron bg-light p-4 rounded-3 my-3 text-center shadow-sm">
+        <h1 class="display-5 fw-bold">Welcome to Short URL 🚀</h1>
+        <p class="lead">Simplify your links, share with ease, and track every click.</p>
+        <div class="mt-3">
+            <a th:href="@{/register}" class="btn btn-primary btn-lg me-2">Get Started</a>
+            <a th:href="@{/about}" class="btn btn-outline-secondary btn-lg">Learn More</a>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row text-center my-5">
+        <div class="col-md-4 mb-3">
+            <div class="card p-3 shadow-sm border-0 h-100">
+                <h4>🔗 Easy Shortening</h4>
+                <p>Turn long, messy URLs into short and clean links in seconds.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card p-3 shadow-sm border-0 h-100">
+                <h4>📊 Track Clicks</h4>
+                <p>Monitor how many times your links are clicked with built-in analytics.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card p-3 shadow-sm border-0 h-100">
+                <h4>🔐 Personalized Access</h4>
+                <p>Create an account to save and manage your shortened URLs anytime.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="card p-4 my-5 text-center bg-primary text-white shadow-sm border-0">
+        <h2>Ready to shorten your first link?</h2>
+        <p>Sign up now and start creating short, powerful links in just one click.</p>
+        <a th:href="@{/register}" class="btn btn-light btn-lg mt-2">Register</a>
+    </div>
+</div>
+</body>
+</html>
