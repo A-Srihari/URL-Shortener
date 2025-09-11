@@ -30,7 +30,9 @@ public class UserController {
     public String registerUser(
             @Valid @ModelAttribute("user") RegisterUserRequest registerRequest,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            Model model) {
+
         if (bindingResult.hasErrors()) {
             return "register";
         }
@@ -38,17 +40,20 @@ public class UserController {
         try {
             var cmd = new CreateUserCmd(
                     registerRequest.email(),
-                    registerRequest
-                            .password(),
+                    registerRequest.password(),
                     registerRequest.username()
             );
 
             userService.createUser(cmd);
-            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please login.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Registration successful! Please login.");
             return "redirect:/login";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "register";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Registration failed: " + e.getMessage());
-            return "redirect:/register";
+            model.addAttribute("errorMessage", "Registration failed: " + e.getMessage());
+            return "register";
         }
     }
 }

@@ -3,19 +3,13 @@ package com.srihari.url_shortener.Controller;
 import com.srihari.url_shortener.ApplicationProperties;
 import com.srihari.url_shortener.Entities.User;
 import com.srihari.url_shortener.Exceptions.ShortUrlNotFoundException;
-import com.srihari.url_shortener.Models.CreateShortUrlCmd;
 import com.srihari.url_shortener.Models.CreateShortUrlForm;
 import com.srihari.url_shortener.Entities.ShortURL;
-import com.srihari.url_shortener.Models.ShortUrlDto;
-import com.srihari.url_shortener.Repositories.ShortUrlRepo;
 import com.srihari.url_shortener.Services.ShortUrlService;
 import com.srihari.url_shortener.Services.UserService;
-import jakarta.validation.Valid;
-import org.apache.catalina.security.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -25,19 +19,25 @@ import java.util.Optional;
 @Controller
 public class HomeController {
 
-    @Autowired
-    public ShortUrlService shortUrlService;
-    public UserService userService;
-    public SecurityUtils securityUtils;
-
+    private final ShortUrlService shortUrlService;
+    private final UserService userService;
+    private final SecurityUtils securityUtils;
     private final ApplicationProperties properties;
 
-    public HomeController(ApplicationProperties properties) {
+    // Constructor injection - this is the proper way to inject dependencies
+    public HomeController(ShortUrlService shortUrlService,
+                          UserService userService,
+                          SecurityUtils securityUtils,
+                          ApplicationProperties properties) {
+        this.shortUrlService = shortUrlService;
+        this.userService = userService;
+        this.securityUtils = securityUtils;
         this.properties = properties;
     }
 
     @GetMapping({"/", "/home"})
     public String home(Model model) {
+        // Show all public URLs for home page (not user-specific)
         List<ShortURL> shortUrls = shortUrlService.findAllPublicShortUrls();
         model.addAttribute("shortUrls", shortUrls);
         model.addAttribute("baseUrl", properties.baseUrl());
@@ -50,12 +50,11 @@ public class HomeController {
         return "about";
     }
 
-
     @PostMapping("/short-urls")
     public String createShortUrl(@ModelAttribute CreateShortUrlForm form,
                                  RedirectAttributes redirectAttributes) {
         try {
-            // Safe way to get current user
+            // Get current user safely
             User currentUser = userService.getCurrentUser();
 
             if (currentUser == null) {
@@ -64,8 +63,8 @@ public class HomeController {
                 return "redirect:/login";
             }
 
-            // Now safely use currentUser.getId()
-            shortUrlService.createShortUrl(form.getOriginalUrl(), currentUser.getId());
+            // Create the short URL using the form
+            shortUrlService.createShortUrl(form);
 
             redirectAttributes.addFlashAttribute("successMessage",
                     "Short URL created successfully!");
@@ -79,10 +78,10 @@ public class HomeController {
     }
 
     @GetMapping("/s/{shortKey}")
-    String redirectToOriginalUrl(@PathVariable String shortKey, Model model) {
+    public String redirectToOriginalUrl(@PathVariable String shortKey, Model model) {
         Optional<ShortURL> shortUrlOptional = shortUrlService.accessShortUrl(shortKey);
         if (shortUrlOptional.isEmpty()) {
-            throw new ShortUrlNotFoundException("Invalid short key" + shortKey);
+            throw new ShortUrlNotFoundException("Invalid short key: " + shortKey);
         }
         ShortURL shortURL = shortUrlOptional.get();
         return "redirect:" + shortURL.getOriginalUrl();
@@ -95,12 +94,21 @@ public class HomeController {
 
     @GetMapping("/my-urls")
     public String showUserUrls(Model model) {
-        List<ShortURL> shortUrls = shortUrlService.findAllPublicShortUrls();
-        model.addAttribute("shortUrls", shortUrls);
-        model.addAttribute("baseUrl", properties.baseUrl());
-        model.addAttribute("createShortUrlForm", new CreateShortUrlForm(""));
-        return "my-urls";
+        try {
+            User currentUser = userService.getCurrentUser();
+            if (currentUser == null) {
+                return "redirect:/login?error=authentication_required";
+            }
+
+            // Get user-specific URLs
+            List<ShortURL> shortUrls = shortUrlService.findUserShortUrls(currentUser.getId());
+            model.addAttribute("shortUrls", shortUrls);
+            model.addAttribute("baseUrl", properties.baseUrl());
+            model.addAttribute("createShortUrlForm", new CreateShortUrlForm(""));
+            return "my-urls";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Error loading your URLs: " + e.getMessage());
+            return "redirect:/home";
+        }
     }
-
-
 }

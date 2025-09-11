@@ -24,10 +24,10 @@ public class WebSecurityConfig {
                 .csrf(CsrfConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                "/error/404", "/webjars/**", "/css/**", "/js/**", "/images/**", "/home",
-                                "/", "/about", "/short-urls", "/s/**", "/register", "/login", "/my-urls/**"
+                                "/error/**", "/webjars/**", "/css/**", "/js/**", "/images/**",
+                                "/home", "/", "/about", "/s/**", "/register", "/login"
                         ).permitAll()
-                        .requestMatchers("/my-urls").authenticated()
+                        .requestMatchers("/short-urls", "/my-urls").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

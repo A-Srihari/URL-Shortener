@@ -5,16 +5,13 @@ import com.srihari.url_shortener.Controller.SecurityUtils;
 import com.srihari.url_shortener.Entities.ShortURL;
 import com.srihari.url_shortener.Models.CreateShortUrlForm;
 import com.srihari.url_shortener.Repositories.ShortUrlRepo;
-import jakarta.transaction.Transactional;
+import com.srihari.url_shortener.Entities.User;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
-
-import com.srihari.url_shortener.Entities.User;
-import org.springframework.stereotype.Service;
 
 @Service
 public class ShortUrlService {
@@ -29,16 +26,28 @@ public class ShortUrlService {
         this.properties = properties;
     }
 
-    // Modified Method
+    // Create short URL from form
     public ShortURL createShortUrl(CreateShortUrlForm createShortUrlForm) {
+        User currentUser = securityUtils.getCurrentUser();
+        if (currentUser == null) {
+            throw new IllegalStateException("User must be authenticated to create short URLs");
+        }
+
         ShortURL shortURL = new ShortURL();
         shortURL.setOriginalUrl(createShortUrlForm.originalUrl());
         shortURL.setShortKey(generateUniqueShortKey());
         shortURL.setExpiresAt(Instant.now().plus(properties.defaultExpirationInDays(), ChronoUnit.DAYS));
-        shortURL.setCreatedBy(securityUtils.getCurrentUser());  // Associate with the user
+        shortURL.setCreatedBy(currentUser);
         shortURL.setIsPrivate(false);
+        shortURL.setClickCount(0L); // Initialize click count
 
         return shortUrlRepo.save(shortURL);
+    }
+
+    // Create short URL with just URL string and user ID (for compatibility)
+    public ShortURL createShortUrl(String originalUrl, Long userId) {
+        CreateShortUrlForm form = new CreateShortUrlForm(originalUrl);
+        return createShortUrl(form);
     }
 
     private String generateUniqueShortKey() {
@@ -62,24 +71,31 @@ public class ShortUrlService {
     }
 
     public Optional<ShortURL> accessShortUrl(String shortKey) {
-        Optional<ShortURL> shorUrlOptional = shortUrlRepo.findByShortKey(shortKey);
-        if (shorUrlOptional.isEmpty()) {
+        Optional<ShortURL> shortUrlOptional = shortUrlRepo.findByShortKey(shortKey);
+        if (shortUrlOptional.isEmpty()) {
             return Optional.empty();
         }
-        ShortURL shortUrl = shorUrlOptional.get();
-        if (shortUrl.getExpiresAt().isBefore(Instant.now())) {
+
+        ShortURL shortUrl = shortUrlOptional.get();
+
+        // Check if expired
+        if (shortUrl.getExpiresAt() != null && shortUrl.getExpiresAt().isBefore(Instant.now())) {
             shortUrlRepo.delete(shortUrl);
             return Optional.empty();
         }
+
+        // Increment click count
         shortUrl.setClickCount(shortUrl.getClickCount() + 1);
         return Optional.of(shortUrlRepo.save(shortUrl));
     }
 
+    // Get all public short URLs (for home page)
     public List<ShortURL> findAllPublicShortUrls() {
-        User currentUser = securityUtils.getCurrentUser();
-        return shortUrlRepo.findPublicShortUrlsByUser(currentUser.getId());
+        return shortUrlRepo.findPublicShortUrls();
     }
 
-    public void createShortUrl(Object originalUrl, Long id) {
+    // Get user-specific short URLs
+    public List<ShortURL> findUserShortUrls(Long userId) {
+        return shortUrlRepo.findPublicShortUrlsByUser(userId);
     }
 }
