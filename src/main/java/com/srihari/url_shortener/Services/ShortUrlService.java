@@ -79,4 +79,7 @@ public class ShortUrlService {
         User currentUser = securityUtils.getCurrentUser();
         return shortUrlRepo.findPublicShortUrlsByUser(currentUser.getId());
     }
+
+    public void createShortUrl(Object originalUrl, Long id) {
+    }
 }
