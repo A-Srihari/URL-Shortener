@@ -17,4 +17,4 @@ It allows users to shorten long URLs into compact links and redirect seamlessly.
 - **Build Tool:** Maven  
 - **Deployment:** Render / Railway (Docker optional)
 
-# Working URL : https://short-url-1.up.railway.app
+# Working URL : https://su1.up.railway.app/my-urls
