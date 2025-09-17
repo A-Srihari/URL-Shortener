@@ -17,4 +17,4 @@ It allows users to shorten long URLs into compact links and redirect seamlessly.
 - **Build Tool:** Maven  
 - **Deployment:** Render / Railway (Docker optional)Wo
 
-# Working URL :  https://su1.up.railway.app/my-urls (or) https://shorturl-pdpi.onrender.com
+#Working URL :  https://su1.up.railway.app/my-urls (or) https://shorturl-pdpi.onrender.com (wait for 3 mintes as it takes 3 minutes server to start)
