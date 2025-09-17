@@ -15,6 +15,6 @@ It allows users to shorten long URLs into compact links and redirect seamlessly.
 - **Frontend:** HTML, CSS, JS
 - **Database:** MySQL (Aiven)  
 - **Build Tool:** Maven  
-- **Deployment:** Render / Railway (Docker optional)
+- **Deployment:** Render / Railway (Docker optional)Wo
 
-# Working URL : https://su1.up.railway.app/my-urls
+# Working URL :  https://su1.up.railway.app/my-urls (or) https://shorturl-pdpi.onrender.com
